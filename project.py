@@ -1,15 +1,28 @@
 import sys
 import socket
 import urllib.request
-
+from socket import *
 
 def main():
+
+    #ip_address = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+    #print(ip_address)
+    
+    s = socket(AF_INET, SOCK_STREAM)
+
+    #gethostname gets public ip?
+    #gethostbyname is different
+    hostname =  gethostname()
+    print(hostname)
+    #[][] because it returns tuples
+    ip_address = (gethostbyname_ex(hostname))[2]
+    print(ip_address)
     if len(sys.argv) < 2:
         print("Please provide a port number as a command-line argument")
         return
 
-    external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-    print("External IP address:", external_ip)
+    # external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+    # print("External IP address:", external_ip)
 
     port = sys.argv[1]
     print("Please select from the numeric options below:")
@@ -32,7 +45,7 @@ def main():
     if user_input == 1:
         help_opt()
     elif user_input == 2:
-        ip_opt()
+        ip_opt(ip_address)
     elif user_input == 3:
         my_port(port)
     elif user_input == 4:
@@ -52,10 +65,10 @@ def help_opt():
     print("Help text goes here")
 
 
-def ip_opt():
+def ip_opt(ip_address):
     """Display the IP address of the current machine"""
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
+    # hostname = socket.gethostname()
+    # ip_address = socket.gethostbyname(hostname)
     print("IP address:", ip_address)
 
 
