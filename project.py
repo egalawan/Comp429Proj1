@@ -1,106 +1,135 @@
 import sys
 import socket
+import selectors
+import types
 import urllib.request
-from socket import *
+
+
+# import requests
+
 
 def main():
+    # ip_address = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+    # print(ip_address)
+    # print(external_ip)
+    # response = requests.get('https://api.ipify.org?format=json')
+    # ip_address = response.json()['ip']
 
-    #ip_address = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-    #print(ip_address)
-    
-    s = socket(AF_INET, SOCK_STREAM)
-
-    #gethostname gets public ip?
-    #gethostbyname is different
-    hostname =  gethostname()
-    print(hostname)
-    #[][] because it returns tuples
-    ip_address = (gethostbyname_ex(hostname))[2]
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # create socket 's'
+    selector = selectors.DefaultSelector()
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)  # get ip_addr
     print(ip_address)
-    if len(sys.argv) < 2:
-        print("Please provide a port number as a command-line argument")
-        return
 
-    # external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-    # print("External IP address:", external_ip)
+    port = int(sys.argv[1])  # get port from terminal entry
+    s.bind((ip_address, port))  # bind ip,port to socket
+    s.listen()
+    s.setblocking(False)
+    selector.register(s, selectors.EVENT_READ,
+                      data=None)  # register socket to the selector object and listen for 'EVENT_READ' events
 
-    port = sys.argv[1]
+    sockets_list = [s]
     print("Please select from the numeric options below:")
-    print("1 - help: Display information about the available user interface options or command manual")
-    print("2 - myip: Display IP address")
-    print("3 - myport: Display port number")
-    print("4 - connect: Connect to another peer")
-    print("5 - list: List connected peers")
-    print("6 - terminate: Terminate connection to a peer")
-    print("7 - send: Send messages to peers")
-    print("8 - exit: Exit the program")
+    print("help")
+    print("myip")
+    print("myport")
+    print("connect")
+    print("list")
+    print("terminate")
+    print("exit")
     user_input = input("")
 
-    try:
-        user_input = int(user_input)
-    except ValueError:
-        print("Invalid input. Please enter a number")
-        return
-
-    if user_input == 1:
+    if user_input == 'help':
         help_opt()
-    elif user_input == 2:
+    elif user_input == 'myip':
         ip_opt(ip_address)
-    elif user_input == 3:
+    elif user_input == 'myport':
         my_port(port)
-    elif user_input == 4:
-        connect_opt()
-    elif user_input == 5:
-        list_opt()
-    elif user_input == 6:
-        terminate_opt()
-    elif user_input == 7:
+    elif 'connect' in user_input:
+        user_input_list = user_input.split()
+        client_ip = user_input_list[1]
+        client_port_num = user_input_list[2]
+        print(client_ip)
+        print(client_port_num)
+        connect(client_ip, client_port_num, ip_address, port, s, sockets_list)
+    elif user_input == 'list':
+        list_opt(sockets_list)
+    elif user_input == 'terminate':
+        terminate_opt(sockets_list)
+    elif user_input == 'send':
         send_opt()
-    elif user_input == 8:
+    elif user_input == 'exit':
         exit_opt()
 
 
 def help_opt():
-    """Display information about the available user interface options or command manual"""
-    print("Help text goes here")
+    pass
 
 
-def ip_opt(ip_address):
-    """Display the IP address of the current machine"""
-    # hostname = socket.gethostname()
-    # ip_address = socket.gethostbyname(hostname)
-    print("IP address:", ip_address)
+def ip_opt(ip):
+    print(ip)
 
 
 def my_port(port):
-    """Display the port number passed as a command-line argument"""
-    print("Port number:", port)
+    print(port)
 
 
-def connect_opt():
-    """Connect to another peer"""
-    print("Connect function goes here")
+def connect(client_ip, client_port_num, ip_address, port, s, sockets_list):
+    #  server_ip, server_port = s.getsockname()
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.setblocking(False)
+
+    #   client_socket.setblocking(False)
+    # sel = selectors.DefaultSelector()
+
+    # sel.register(s, selectors.EVENT_READ, data=None)
+
+    try:
+        client_socket.connect((client_ip, int(client_port_num)))
+    except BlockingIOError:
+        pass
+    selector = selectors.DefaultSelector()
+    selector.register(client_socket, selectors.EVENT_WRITE, data=None)
+
+    while True:
+        events = selector.select(timeout=1)
+        for key, mask in events:
+            if mask & selectors.EVENT_WRITE:
+                selector.unregister(client_socket)
+                sockets_list.append(client_socket)
+                print(f"Connected to {client_ip}:{client_port_num}")
+                return
+            else:
+                print("Connection failed")
+                return
 
 
-def list_opt():
-    """List connected peers"""
-    print("List function goes here")
+# print(f"The connection to peer {ip}  has been successfully established on port {port}")
 
 
-def terminate_opt():
-    """Terminate connection to a peer"""
-    print("Terminate function goes here")
+def list_opt(socket_list):
+    print('ID' + '\t''\t''IP' + '\t''\t''Port Number')
+    for index, socket in enumerate(socket_list):
+        ip_address = socket.getsockname()[0]
+        port_number = socket.getsockname()[1]
+        print(f'{index + 1:<10}{ip_address:<18}{port_number:>10}')
+
+
+def terminate_opt(socket_list):
+    for socket in socket_list:
+        socket.close()
 
 
 def send_opt():
-    """Send messages to peers"""
-    print("Send function goes here")
+    pass
 
 
 def exit_opt():
-    """Exit the program"""
-    print("Exiting...")
-    sys.exit(0)
+    sys.exit()
+
+
+def error_handler():
+    return "Invalid input. Please enter a number"
 
 
 if __name__ == '__main__':
