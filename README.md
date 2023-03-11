@@ -13,13 +13,14 @@ and
         - Started reasearching Socket Programming and watched lots of 
         - worked on the set up of the code
         - Worked on most of the methods including the connect(), list_opt(), terminate_opt(), and send_opt()
+        - Made the functions work for terminate_opt()
     
     Don Thisura Nawalage, Programmer
         - Worked on bugs that would come up throughout the project
         - Set up the github so that both of us can access the code easily and update eachother
         - Worked on the menu of the application for when the user opens the Application
         - Got the list_opt properly printing out the right IP Address because everytime we tried retrieving the remote port number, we kept getting the <OSError> Socket Not Connected Error and to fix it we added a try and except function
-        - 
+        - Work on the help_opt() and set it up so that the user can understand how to properly use our application if they get stuck
     
 ## Application Requirements
     - Computer with a command line and something to install python3
@@ -51,5 +52,7 @@ and
 > python3 project.py 3030
     
     - Then the application has started up and the Menu will pop up onto the command line on the terminal. 
+    - Then type 'help' to see the functionalities of the application and how to run
+
 
    

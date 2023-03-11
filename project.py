@@ -3,14 +3,13 @@ from socket import *
 import selectors
 import types
 import urllib.request
-# import requests
+
 
 def main():
     server_socket = socket(AF_INET, SOCK_STREAM)  # create socket 's'
     selector = selectors.DefaultSelector()
     hostname = gethostname()
     ip_address = gethostbyname(hostname)  # get ip_addr
-    print(ip_address)
 
     port = int(sys.argv[1])  # get port from terminal entry
     server_socket.bind((ip_address, port))  # bind ip,port to socket
@@ -21,13 +20,14 @@ def main():
     sockets_list = [server_socket]
     while True:
         user_input = ""
-        print("Chat Application Menu")
+        print("\nChat Application Menu")
         print("----------------------")
         print("help")
         print("myip")
         print("myport")
-        print("connect <destination> <port number>")
+        print("connect")
         print("list")
+        print("send")
         print("terminate")
         print("exit")
         print("Please type in one of the following Options: ")
@@ -50,36 +50,56 @@ def main():
                 print("Wrong input, Try Again")
         elif user_input == 'list':
             list_opt(sockets_list)
-        elif user_input == 'terminate':
-            terminate_opt(sockets_list)
-        elif user_input == 'send':
-            send_opt()
+    
+        elif user_input.startswith('terminate'):
+            id = int(user_input.split()[1]) - 1
+            print(id)
+            terminate_opt(sockets_list, id)
+            print(sockets_list)
+
+        elif user_input.startswith('send'):
+            id = int(user_input.split()[1]) - 1
+            msg = user_input.split()[2]
+            print(id)
+            print(msg)
+            send_opt(server_socket, sockets_list, id, msg)
         elif user_input == 'exit':
             exit_opt()
-
+        else:
+            print("INVALID INPUT, please try again")
 
 def help_opt():
-    pass
+    user_input = ''
+    print("How to Use Our Functions")
+    print("-------------------------")
+    print("myip - prints out the user's IP address")
+    print("myport - prints out the user's port number")
+    print("connect <destination> <port number> - connects to the specified destination and port number users must put IP Address and port number for the function to work")
+    print("list - prints out the list of connections in the current port")
+    print("terminate - closes the current socket and terminates the chat")
+    print("exit - quits out of the program")
+    print("Type 1 to go back to the main menu")
+
+    user_input = input()
+    if user_input == "1":
+        print("GOING BACK")
+    else:
+        print("Invalid input. Please enter 1 to return to the main menu.")
+        help_opt()
 
 
 def ip_opt(ip):
-    print(f"The Local Ip{ip}")
+    print(f"The Local Ip is: {ip}")
 
 
 def my_port(port):
-    print(port)
+    print(f"Your Port number is: {port}")
 
 
 def connect(client_ip, client_port_num, ip_address, port, server_socket, sockets_list):
     #  server_ip, server_port = s.getsockname()
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.setblocking(False)
-
-    #   client_socket.setblocking(False)
-    # sel = selectors.DefaultSelector()
-
-    # sel.register(s, selectors.EVENT_READ, data=None)
-
     try:
         client_socket.connect((client_ip, int(client_port_num)))
     except BlockingIOError:
@@ -93,7 +113,7 @@ def connect(client_ip, client_port_num, ip_address, port, server_socket, sockets
             if mask & selectors.EVENT_WRITE:
                 selector.unregister(client_socket)
                 sockets_list.append(client_socket)
-                print(f"Connected to {client_ip}:{client_port_num}")
+                print(f"The connection to {client_ip} is successfully established")
                 return
             else:
                 error_handler(1)
@@ -117,11 +137,16 @@ def list_opt(socket_list):
         print(f"{i + 1}:\t{ip_address:<18}{port_number:>10}")
 
 
-def terminate_opt(socket_list):
-    for socket in socket_list:
-        socket.close()
-
-
+def terminate_opt(sockets_list,id): # user_input = 'terminate idNum' <---this is the format of the user input
+         # get socket ID from user input
+        print(sockets_list)
+        socket_to_terminate = sockets_list[id]  # get the socket object
+        socket_to_terminate.close()  # close the socket
+        sockets_list.remove(socket_to_terminate)  # remove the socket from the list
+        #print(sockets_list)
+        #print(f"Socket {id + 1} has been terminated")
+        return
+        
 def send_opt():
     pass
 
@@ -129,14 +154,12 @@ def send_opt():
 def exit_opt():
     False
     sys.exit()
-    
 
 
 def error_handler(number):
     if number == 1:
         print("Connection Error")
         return exit_opt()
-
 
 
 if __name__ == '__main__':
