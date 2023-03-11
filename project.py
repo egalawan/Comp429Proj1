@@ -20,15 +20,18 @@ def main():
 
     sockets_list = [server_socket]
     while True:
-        print("Please type in one of the following Options:")
+        user_input = ""
+        print("Chat Application Menu")
+        print("----------------------")
         print("help")
         print("myip")
         print("myport")
-        print("connect")
+        print("connect <destination> <port number>")
         print("list")
         print("terminate")
         print("exit")
-        user_input = input("")
+        print("Please type in one of the following Options: ")
+        user_input = input()
 
         if user_input == 'help':
             help_opt()
@@ -38,10 +41,13 @@ def main():
             my_port(port)
         #because when using connect, needs ip and port number as well
         elif 'connect' in user_input:
-            user_input_list = user_input.split()
-            client_ip = user_input_list[1]
-            client_port_num = user_input_list[2]
-            connect(client_ip, client_port_num, ip_address, port, server_socket, sockets_list)
+            if len(user_input) >= 3: 
+                user_input_list = user_input.split()
+                client_ip = user_input_list[1]
+                client_port_num = user_input_list[2]
+                connect(client_ip, client_port_num, ip_address, port, server_socket, sockets_list)
+            else:
+                print("Wrong input, Try Again")
         elif user_input == 'list':
             list_opt(sockets_list)
         elif user_input == 'terminate':
@@ -90,13 +96,14 @@ def connect(client_ip, client_port_num, ip_address, port, server_socket, sockets
                 print(f"Connected to {client_ip}:{client_port_num}")
                 return
             else:
-                print("Connection failed")
+                error_handler(1)
                 return
 
 
 # print(f"The connection to peer {ip}  has been successfully established on port {port}")
 def list_opt(socket_list):
-    print('ID' + '\t''\t''IP' + '\t''\t''Port Number')
+    print('id: \t''IP address: \t\tPort No.')
+
     for i, each_socket in enumerate(socket_list):
         ip_address = each_socket.getsockname()[0]
         laddr_port_number = each_socket.getsockname()[1]
@@ -105,8 +112,9 @@ def list_opt(socket_list):
         except OSError:
             raddr_port_number = "N/A"
 
+
         port_number = laddr_port_number if raddr_port_number == "N/A" else raddr_port_number
-        print(f'{i + 1:<10}{ip_address:<18}{port_number:>10}')
+        print(f"{i + 1}:\t{ip_address:<18}{port_number:>10}")
 
 
 def terminate_opt(socket_list):
@@ -119,12 +127,16 @@ def send_opt():
 
 
 def exit_opt():
-    sys.exit()
     False
+    sys.exit()
+    
 
 
-def error_handler():
-    return "Invalid input. Please enter a number"
+def error_handler(number):
+    if number == 1:
+        print("Connection Error")
+        return exit_opt()
+
 
 
 if __name__ == '__main__':
