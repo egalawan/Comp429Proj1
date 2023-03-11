@@ -12,7 +12,7 @@ and
     Noel Ortiz, the Lead Programmer
         - Started reasearching Socket Programming and watched lots of 
         - worked on the set up of the code
-        - Started most of the methods including the connect(), list_opt(), terminate_opt(), and send_opt()
+        - Worked on most of the methods including the connect(), list_opt(), terminate_opt(), and send_opt()
     
     Don Thisura Nawalage, Programmer
         - Worked on bugs that would come up throughout the project
