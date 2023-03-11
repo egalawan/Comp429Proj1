@@ -36,6 +36,7 @@ def main():
             ip_opt(ip_address)
         elif user_input == 'myport':
             my_port(port)
+        #because when using connect, needs ip and port number as well
         elif 'connect' in user_input:
             user_input_list = user_input.split()
             client_ip = user_input_list[1]
