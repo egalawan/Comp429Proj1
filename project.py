@@ -1,65 +1,54 @@
 import sys
-import socket
+from socket import *
 import selectors
 import types
 import urllib.request
-
-
 # import requests
 
-
 def main():
-    # ip_address = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-    # print(ip_address)
-    # print(external_ip)
-    # response = requests.get('https://api.ipify.org?format=json')
-    # ip_address = response.json()['ip']
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # create socket 's'
+    server_socket = socket(AF_INET, SOCK_STREAM)  # create socket 's'
     selector = selectors.DefaultSelector()
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)  # get ip_addr
+    hostname = gethostname()
+    ip_address = gethostbyname(hostname)  # get ip_addr
     print(ip_address)
 
     port = int(sys.argv[1])  # get port from terminal entry
-    s.bind((ip_address, port))  # bind ip,port to socket
-    s.listen()
-    s.setblocking(False)
-    selector.register(s, selectors.EVENT_READ,
-                      data=None)  # register socket to the selector object and listen for 'EVENT_READ' events
+    server_socket.bind((ip_address, port))  # bind ip,port to socket
+    server_socket.listen()
+    server_socket.setblocking(False)
+    selector.register(server_socket, selectors.EVENT_READ, data=None)  # register socket to the selector object and listen for 'EVENT_READ' events
 
-    sockets_list = [s]
-    print("Please select from the numeric options below:")
-    print("help")
-    print("myip")
-    print("myport")
-    print("connect")
-    print("list")
-    print("terminate")
-    print("exit")
-    user_input = input("")
+    sockets_list = [server_socket]
+    while True:
+        print("Please type in one of the following Options:")
+        print("help")
+        print("myip")
+        print("myport")
+        print("connect")
+        print("list")
+        print("terminate")
+        print("exit")
+        user_input = input("")
 
-    if user_input == 'help':
-        help_opt()
-    elif user_input == 'myip':
-        ip_opt(ip_address)
-    elif user_input == 'myport':
-        my_port(port)
-    elif 'connect' in user_input:
-        user_input_list = user_input.split()
-        client_ip = user_input_list[1]
-        client_port_num = user_input_list[2]
-        print(client_ip)
-        print(client_port_num)
-        connect(client_ip, client_port_num, ip_address, port, s, sockets_list)
-    elif user_input == 'list':
-        list_opt(sockets_list)
-    elif user_input == 'terminate':
-        terminate_opt(sockets_list)
-    elif user_input == 'send':
-        send_opt()
-    elif user_input == 'exit':
-        exit_opt()
+        if user_input == 'help':
+            help_opt()
+        elif user_input == 'myip':
+            ip_opt(ip_address)
+        elif user_input == 'myport':
+            my_port(port)
+        elif 'connect' in user_input:
+            user_input_list = user_input.split()
+            client_ip = user_input_list[1]
+            client_port_num = user_input_list[2]
+            connect(client_ip, client_port_num, ip_address, port, server_socket, sockets_list)
+        elif user_input == 'list':
+            list_opt(sockets_list)
+        elif user_input == 'terminate':
+            terminate_opt(sockets_list)
+        elif user_input == 'send':
+            send_opt()
+        elif user_input == 'exit':
+            exit_opt()
 
 
 def help_opt():
@@ -67,16 +56,16 @@ def help_opt():
 
 
 def ip_opt(ip):
-    print(ip)
+    print(f"The Local Ip{ip}")
 
 
 def my_port(port):
     print(port)
 
 
-def connect(client_ip, client_port_num, ip_address, port, s, sockets_list):
+def connect(client_ip, client_port_num, ip_address, port, server_socket, sockets_list):
     #  server_ip, server_port = s.getsockname()
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.setblocking(False)
 
     #   client_socket.setblocking(False)
@@ -105,14 +94,18 @@ def connect(client_ip, client_port_num, ip_address, port, s, sockets_list):
 
 
 # print(f"The connection to peer {ip}  has been successfully established on port {port}")
-
-
 def list_opt(socket_list):
     print('ID' + '\t''\t''IP' + '\t''\t''Port Number')
-    for index, socket in enumerate(socket_list):
-        ip_address = socket.getsockname()[0]
-        port_number = socket.getsockname()[1]
-        print(f'{index + 1:<10}{ip_address:<18}{port_number:>10}')
+    for i, each_socket in enumerate(socket_list):
+        ip_address = each_socket.getsockname()[0]
+        laddr_port_number = each_socket.getsockname()[1]
+        try:
+            raddr_port_number = each_socket.getpeername()[1]
+        except OSError:
+            raddr_port_number = "N/A"
+
+        port_number = laddr_port_number if raddr_port_number == "N/A" else raddr_port_number
+        print(f'{i + 1:<10}{ip_address:<18}{port_number:>10}')
 
 
 def terminate_opt(socket_list):
@@ -126,6 +119,7 @@ def send_opt():
 
 def exit_opt():
     sys.exit()
+    False
 
 
 def error_handler():
